@@ -46,7 +46,7 @@ function LabContent() {
 
 
       <div>
-        <TodoList />
+         <TodoList />
       </div>
 
       <Link to="/">Вернуться на главную</Link>
