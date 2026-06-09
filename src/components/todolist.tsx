@@ -31,7 +31,7 @@ function Todolist() {
     <section className="users-panel">
       <div className="users-panel__header">
         <div>
-          <span>Async Zustand CRUD</span>
+          
           <h2>Пользователи</h2>
           <p>Данные загружаются и сохраняются в db.json.</p>
         </div>
