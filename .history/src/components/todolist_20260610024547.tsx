@@ -26,7 +26,7 @@ function Todolist() {
       <div className="users-panel__header">
         <div>
          
-           <h2>Пользователи</h2>
+          <h2>Пользователи</h2>
           <p>Данные хранятся локально в Redux store до перезагрузки страницы.</p>
         </div>
         <button className="dialog-trigger" type="button" onClick={() => openDialog('add')}>
