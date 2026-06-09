@@ -1,6 +1,13 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { type User, useUserStore } from '../../store/store'
+import { useDispatch } from 'react-redux'
+import {
+  addUser,
+  deleteUser,
+  editUser,
+  type AppDispatch,
+  type User,
+} from '../../store/store'
 import './dialog.css'
 
 export type DialogMode = 'add' | 'edit' | 'info' | 'delete'
@@ -20,12 +27,7 @@ const dialogTitles = {
 }
 
 function Dialog({ isOpen, mode, user, onClose }: DialogProps) {
-  const addUser = useUserStore((state) => state.addUser)
-  const editUser = useUserStore((state) => state.editUser)
-  const deleteUser = useUserStore((state) => state.deleteUser)
-  const saving = useUserStore((state) => state.saving)
-  const error = useUserStore((state) => state.error)
-
+  const dispatch = useDispatch<AppDispatch>()
   const [name, setName] = useState(user?.name ?? '')
   const [email, setEmail] = useState(user?.email ?? '')
   const [description, setDescription] = useState(user?.description ?? '')
@@ -49,7 +51,7 @@ function Dialog({ isOpen, mode, user, onClose }: DialogProps) {
 
   if (!isOpen) return null
 
-  async function saveUser() {
+  function saveUser() {
     const formData = {
       name: name.trim(),
       email: email.trim(),
@@ -57,25 +59,24 @@ function Dialog({ isOpen, mode, user, onClose }: DialogProps) {
       status,
     }
 
-    const success =
-      mode === 'add'
-        ? await addUser(formData)
-        : user
-          ? await editUser(user.id, formData)
-          : false
+    if (mode === 'add') {
+      dispatch(addUser(formData))
+    } else if (user) {
+      dispatch(editUser({ id: user.id, changes: formData }))
+    }
 
-    if (success) onClose()
+    onClose()
   }
 
-  async function removeUser() {
+  function removeUser() {
     if (!user) return
 
-    const success = await deleteUser(user.id)
-    if (success) onClose()
+    dispatch(deleteUser(user.id))
+    onClose()
   }
 
   return createPortal(
-    <div className="dialog-overlay" onMouseDown={() => !saving && onClose()}>
+    <div className="dialog-overlay" onMouseDown={onClose}>
       <section
         className="dialog"
         role="dialog"
@@ -88,18 +89,17 @@ function Dialog({ isOpen, mode, user, onClose }: DialogProps) {
         <header className="dialog__header">
           <div className="dialog__icon">{mode === 'delete' ? '!' : mode === 'info' ? 'i' : '+'}</div>
           <div>
-            <span>Users database</span>
+            <span>Local Redux store</span>
             <h2 id="dialog-title">{dialogTitles[mode]}</h2>
             <p>
               {mode === 'delete'
-                ? 'Это действие удалит запись из db.json.'
-                : 'Изменения сохраняются асинхронно через Zustand и Axios.'}
+                ? 'Пользователь будет удалён из локального состояния.'
+                : 'Изменения выполняются через actions и reducers Redux Toolkit.'}
             </p>
           </div>
           <button
             className="dialog__close"
             type="button"
-            disabled={saving}
             aria-label="Закрыть модальное окно"
             onClick={onClose}
           >
@@ -127,14 +127,13 @@ function Dialog({ isOpen, mode, user, onClose }: DialogProps) {
         {mode === 'delete' && user && (
           <div className="dialog__delete">
             <strong>Удалить {user.name}?</strong>
-            <p>Запись исчезнет из таблицы и файла базы данных.</p>
-            {error && <p className="dialog__error">{error}</p>}
+            <p>Пользователь исчезнет из локального Redux store.</p>
             <footer className="dialog__footer">
-              <button className="dialog__cancel" type="button" disabled={saving} onClick={onClose}>
+              <button className="dialog__cancel" type="button" onClick={onClose}>
                 Отмена
               </button>
-              <button className="dialog__danger" type="button" disabled={saving} onClick={removeUser}>
-                {saving ? 'Удаление...' : 'Удалить'}
+              <button className="dialog__danger" type="button" onClick={removeUser}>
+                Удалить
               </button>
             </footer>
           </div>
@@ -188,14 +187,12 @@ function Dialog({ isOpen, mode, user, onClose }: DialogProps) {
               </select>
             </label>
 
-            {error && <p className="dialog__error">{error}</p>}
-
             <footer className="dialog__footer">
-              <button className="dialog__cancel" type="button" disabled={saving} onClick={onClose}>
+              <button className="dialog__cancel" type="button" onClick={onClose}>
                 Отмена
               </button>
-              <button className="dialog__submit" type="submit" disabled={saving}>
-                {saving ? 'Сохранение...' : mode === 'add' ? 'Добавить' : 'Сохранить'}
+              <button className="dialog__submit" type="submit">
+                {mode === 'add' ? 'Добавить' : 'Сохранить'}
                 <span>→</span>
               </button>
             </footer>

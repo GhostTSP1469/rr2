@@ -1,10 +1,7 @@
-import axios from 'axios'
-import { create } from 'zustand'
-
-const API_URL = '/api/users'
+import { configureStore, createSlice, type PayloadAction } from '@reduxjs/toolkit'
 
 export type User = {
-  id: number | string
+  id: number
   name: string
   description: string
   email: string
@@ -13,96 +10,67 @@ export type User = {
 
 export type UserForm = Omit<User, 'id'>
 
-type UserStore = {
-  users: User[]
-  loading: boolean
-  saving: boolean
-  error: string
-  fetchUsers: () => Promise<void>
-  addUser: (user: UserForm) => Promise<boolean>
-  editUser: (id: User['id'], user: UserForm) => Promise<boolean>
-  deleteUser: (id: User['id']) => Promise<boolean>
-}
-
-function getErrorMessage(error: unknown) {
-  if (axios.isAxiosError(error)) {
-    if (error.code === 'ERR_NETWORK') {
-      return 'API-сервер недоступен. Перезапустите проект командой npm run dev.'
-    }
-
-    return error.response?.data?.message ?? error.message
-  }
-
-  return 'Произошла неизвестная ошибка'
-}
-
-export const useUserStore = create<UserStore>((set) => ({
-  users: [],
-  loading: false,
-  saving: false,
-  error: '',
-
-  fetchUsers: async () => {
-    set({ loading: true, error: '' })
-
-    try {
-      const response = await axios.get<User[]>(API_URL)
-      set({ users: response.data })
-    } catch (error) {
-      set({ error: getErrorMessage(error) })
-    } finally {
-      set({ loading: false })
-    }
+const initialUsers: User[] = [
+  {
+    id: 1,
+    name: 'John Doe',
+    description: 'Frontend-разработчик и участник команды Arcana.',
+    email: 'john.doe@example.com',
+    status: true,
   },
-
-  addUser: async (user) => {
-    set({ saving: true, error: '' })
-
-    try {
-      const response = await axios.post<User>(API_URL, user)
-      set((state) => ({ users: [...state.users, response.data] }))
-      return true
-    } catch (error) {
-      set({ error: getErrorMessage(error) })
-      return false
-    } finally {
-      set({ saving: false })
-    }
+  {
+    id: 2,
+    name: 'Jane Smith',
+    description: 'Дизайнер интерфейсов и исследователь продукта.',
+    email: 'jane.smith@example.com',
+    status: false,
   },
-
-  editUser: async (id, user) => {
-    set({ saving: true, error: '' })
-
-    try {
-      const response = await axios.put<User>(`${API_URL}/${id}`, user)
-      set((state) => ({
-        users: state.users.map((currentUser) =>
-          currentUser.id === id ? response.data : currentUser,
-        ),
-      }))
-      return true
-    } catch (error) {
-      set({ error: getErrorMessage(error) })
-      return false
-    } finally {
-      set({ saving: false })
-    }
+  {
+    id: 3,
+    name: 'Alice Johnson',
+    description: 'Backend-разработчик и специалист по API.',
+    email: 'alice.johnson@example.com',
+    status: true,
   },
+]
 
-  deleteUser: async (id) => {
-    set({ saving: true, error: '' })
+const usersSlice = createSlice({
+  name: 'users',
+  initialState: initialUsers,
+  reducers: {
+    addUser: {
+      reducer: (users, action: PayloadAction<User>) => {
+        users.push(action.payload)
+      },
+      prepare: (user: UserForm) => ({
+        payload: {
+          ...user,
+          id: Date.now(),
+        },
+      }),
+    },
+    editUser: (
+      users,
+      action: PayloadAction<{ id: number; changes: UserForm }>,
+    ) => {
+      const user = users.find((currentUser) => currentUser.id === action.payload.id)
 
-    try {
-      await axios.delete(`${API_URL}/${id}`)
-      set((state) => ({
-        users: state.users.filter((user) => user.id !== id),
-      }))
-      return true
-    } catch (error) {
-      set({ error: getErrorMessage(error) })
-      return false
-    } finally {
-      set({ saving: false })
-    }
+      if (user) {
+        Object.assign(user, action.payload.changes)
+      }
+    },
+    deleteUser: (users, action: PayloadAction<number>) =>
+      users.filter((user) => user.id !== action.payload),
   },
-}))
+})
+
+export const { addUser, editUser, deleteUser } = usersSlice.actions
+
+export const store = configureStore({
+  reducer: {
+    users: usersSlice.reducer,
+  },
+})
+
+export type RootState = ReturnType<typeof store.getState>
+export type AppDispatch = typeof store.dispatch
