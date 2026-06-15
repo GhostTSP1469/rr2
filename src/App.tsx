@@ -77,7 +77,7 @@ function App() {
   return (
     <main className="min-h-screen bg-gray-100 p-8">
       <div className="mx-auto max-w-3xl">
-        <h1 className="mb-6 text-center text-3xl font-bold">Local CRUD</h1>
+
 
         <form
           className="mb-8 rounded-lg bg-white p-5 shadow"
