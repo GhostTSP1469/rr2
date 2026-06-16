@@ -1,27 +1,25 @@
-import { useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
+import { useAtomValue, useSetAtom } from 'jotai'
+import { useEffect, useState, type SyntheticEvent } from 'react'
 import {
-  addData,
-  deleteData,
-  editData,
-  getData,
-  store,
+  addDataAtom,
+  dataAtom,
+  deleteDataAtom,
+  editDataAtom,
+  errorAtom,
+  getDataAtom,
+  isLoadingAtom,
   type Todo,
 } from './store/store'
 
-type RootState = {
-  todo: {
-    data: Todo[]
-    isLoading: boolean
-    error: string | null
-  }
-}
-
 function App() {
-  const dispatch = useDispatch() as typeof store.dispatch
-  const { data, isLoading, error } = useSelector(
-    (state: RootState) => state.todo,
-  )
+  const data = useAtomValue(dataAtom)
+  const isLoading = useAtomValue(isLoadingAtom)
+  const error = useAtomValue(errorAtom)
+
+  const getData = useSetAtom(getDataAtom)
+  const addData = useSetAtom(addDataAtom)
+  const editData = useSetAtom(editDataAtom)
+  const deleteData = useSetAtom(deleteDataAtom)
 
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
@@ -30,8 +28,8 @@ function App() {
   const [formError, setFormError] = useState('')
 
   useEffect(() => {
-    dispatch(getData())
-  }, [dispatch])
+    getData()
+  }, [getData])
 
   const clearForm = () => {
     setName('')
@@ -41,40 +39,39 @@ function App() {
     setFormError('')
   }
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: SyntheticEvent) => {
     event.preventDefault()
 
     if (!name.trim() || !description.trim()) {
-      setFormError('Заполните name и description')
+      setFormError('Fill name and description')
       return
     }
 
     if (editId === null && images.length === 0) {
-      setFormError('Для добавления выберите image')
+      setFormError('Choose image for add')
       return
     }
 
     setFormError('')
 
-    const action =
-      editId === null
-        ? await dispatch(
-            addData({
-              name,
-              description,
-              images,
-            }),
-          )
-        : await dispatch(
-            editData({
-              id: editId,
-              name,
-              description,
-            }),
-          )
+    try {
+      if (editId === null) {
+        await addData({
+          name,
+          description,
+          images,
+        })
+      } else {
+        await editData({
+          id: editId,
+          name,
+          description,
+        })
+      }
 
-    if (action.type.endsWith('/fulfilled')) {
       clearForm()
+    } catch {
+      setFormError('Action failed')
     }
   }
 
@@ -89,7 +86,7 @@ function App() {
   return (
     <main className="min-h-screen bg-slate-100 p-6 text-slate-900">
       <div className="mx-auto max-w-4xl">
-        <h1 className="mb-6 text-center text-3xl font-bold"> API CRUD REDUX</h1>
+        <h1 className="mb-6 text-center text-3xl font-bold">API CRUD Jotai</h1>
 
         <form
           className="mb-6 rounded-xl bg-white p-5 shadow"
@@ -176,7 +173,9 @@ function App() {
               <button
                 className="rounded bg-red-500 px-4 py-2 text-white"
                 type="button"
-                onClick={() => dispatch(deleteData(todo.id))}
+                onClick={() => {
+                  deleteData(todo.id)
+                }}
               >
                 Delete
               </button>

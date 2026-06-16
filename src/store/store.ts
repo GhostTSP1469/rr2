@@ -1,4 +1,4 @@
-import { configureStore, createAsyncThunk, createSlice } from '@reduxjs/toolkit'
+import { atom } from 'jotai'
 import axios from 'axios'
 
 export type TodoImage = {
@@ -20,12 +20,6 @@ type TodoApiResponse = {
   statusCode: number
 }
 
-type TodoState = {
-  data: Todo[]
-  isLoading: boolean
-  error: string | null
-}
-
 type AddTodo = {
   name: string
   description: string
@@ -38,13 +32,14 @@ type EditTodo = {
   description: string
 }
 
-const initialState: TodoState = {
-  data: [],
-  isLoading: false,
-  error: null,
-}
-
 const api = 'https://to-dos-api.softclub.tj/api/to-dos'
+
+const initialData: Todo[] = []
+const initialError: string | null = null
+
+export const dataAtom = atom(initialData)
+export const isLoadingAtom = atom(false)
+export const errorAtom = atom(initialError)
 
 const loadTodos = async () => {
   const response = await axios.get(api)
@@ -53,16 +48,25 @@ const loadTodos = async () => {
   return result.data
 }
 
-export const getData = createAsyncThunk('todo/getData', async () => {
+export const getDataAtom = atom(null, async (_get, set) => {
   try {
-    return await loadTodos()
+    set(isLoadingAtom, true)
+    set(errorAtom, null)
+
+    const todos = await loadTodos()
+    set(dataAtom, todos)
   } catch {
-    throw new Error('Failed to load todos')
+    set(errorAtom, 'Failed to load todos')
+  } finally {
+    set(isLoadingAtom, false)
   }
 })
 
-export const addData = createAsyncThunk('todo/addData', async (todo: AddTodo) => {
+export const addDataAtom = atom(null, async (_get, set, todo: AddTodo) => {
   try {
+    set(isLoadingAtom, true)
+    set(errorAtom, null)
+
     const formData = new FormData()
 
     formData.append('Name', todo.name)
@@ -73,93 +77,50 @@ export const addData = createAsyncThunk('todo/addData', async (todo: AddTodo) =>
 
     await axios.post(api, formData)
 
-    return await loadTodos()
+    const todos = await loadTodos()
+    set(dataAtom, todos)
   } catch {
+    set(errorAtom, 'Failed to add todo')
     throw new Error('Failed to add todo')
+  } finally {
+    set(isLoadingAtom, false)
   }
 })
 
-export const editData = createAsyncThunk('todo/editData', async (todo: EditTodo) => {
+export const editDataAtom = atom(null, async (_get, set, todo: EditTodo) => {
   try {
+    set(isLoadingAtom, true)
+    set(errorAtom, null)
+
     await axios.put(api, {
       id: todo.id,
       name: todo.name,
       description: todo.description,
     })
 
-    return todo
+    set(dataAtom, (todos) =>
+      todos.map((currentTodo) =>
+        currentTodo.id === todo.id ? { ...currentTodo, ...todo } : currentTodo,
+      ),
+    )
   } catch {
+    set(errorAtom, 'Failed to edit todo')
     throw new Error('Failed to edit todo')
+  } finally {
+    set(isLoadingAtom, false)
   }
 })
 
-export const deleteData = createAsyncThunk('todo/deleteData', async (id: number) => {
+export const deleteDataAtom = atom(null, async (_get, set, id: number) => {
   try {
+    set(errorAtom, null)
+
     await axios.delete(api, {
       params: { id },
     })
 
-    return id
+    set(dataAtom, (todos) => todos.filter((todo) => todo.id !== id))
   } catch {
-    throw new Error('Failed to delete todo')
+    set(errorAtom, 'Failed to delete todo')
   }
-})
-
-const todoSlice = createSlice({
-  name: 'todo',
-  initialState,
-  reducers: {},
-  extraReducers: (builder) => {
-    builder
-      .addCase(getData.pending, (state) => {
-        state.isLoading = true
-        state.error = null
-      })
-      .addCase(getData.fulfilled, (state, action) => {
-        state.isLoading = false
-        state.data = action.payload
-      })
-      .addCase(getData.rejected, (state, action) => {
-        state.isLoading = false
-        state.error = action.error.message ?? 'Something went wrong'
-      })
-      .addCase(addData.pending, (state) => {
-        state.isLoading = true
-        state.error = null
-      })
-      .addCase(addData.fulfilled, (state, action) => {
-        state.isLoading = false
-        state.data = action.payload
-      })
-      .addCase(addData.rejected, (state, action) => {
-        state.isLoading = false
-        state.error = action.error.message ?? 'Something went wrong'
-      })
-      .addCase(editData.pending, (state) => {
-        state.isLoading = true
-        state.error = null
-      })
-      .addCase(editData.fulfilled, (state, action) => {
-        state.isLoading = false
-        state.data = state.data.map((todo) =>
-          todo.id === action.payload.id ? { ...todo, ...action.payload } : todo,
-        )
-      })
-      .addCase(editData.rejected, (state, action) => {
-        state.isLoading = false
-        state.error = action.error.message ?? 'Something went wrong'
-      })
-      .addCase(deleteData.fulfilled, (state, action) => {
-        state.data = state.data.filter((todo) => todo.id !== action.payload)
-      })
-      .addCase(deleteData.rejected, (state, action) => {
-        state.error = action.error.message ?? 'Something went wrong'
-      })
-  },
-})
-
-export const store = configureStore({
-  reducer: {
-    todo: todoSlice.reducer,
-  },
 })
