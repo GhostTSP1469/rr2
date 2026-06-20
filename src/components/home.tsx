@@ -636,7 +636,7 @@ function Home() {
       <div className="flex min-h-screen">
         <AppSidebar openPage={openPage} page={page} />
 
-        <section className="w-full px-4 py-6 lg:ml-[260px] lg:px-8">
+        <section className="w-full px-4 py-6 pb-28 lg:ml-[260px] lg:px-8 lg:pb-12">
           <AppHeader
             getAllData={getAllData}
             page={page}
@@ -766,7 +766,38 @@ function Home() {
                   </Button>
                 </div>
 
-                <div className="overflow-x-auto">
+                <div className="space-y-4 md:hidden">
+                  {upcomingDebts.map((debt) => (
+                    <article className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4 shadow-sm" key={debt.id}>
+                      <div className="flex items-start justify-between gap-3">
+                        <button
+                          className="min-w-0 text-left"
+                          type="button"
+                          onClick={() => openDebtDetails(debt)}
+                        >
+                          <p className="font-semibold text-slate-900">{getDebtTitle(debt)}</p>
+                          <p className="mt-1 text-sm text-slate-500">{directionText(debt.direction)}</p>
+                        </button>
+                        <span className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${statusClass(debt.status)}`}>
+                          {debt.status}
+                        </span>
+                      </div>
+
+                      <div className="mt-4 grid gap-2 text-sm text-slate-600">
+                        <p>Amount: <span className="font-semibold text-slate-900">{formatMoney(getDebtRemaining(debt), debt.currency)}</span></p>
+                        <p>Due: <span className="font-semibold text-slate-900">{formatDate(debt.due_date)}</span></p>
+                      </div>
+                    </article>
+                  ))}
+
+                  {!upcomingDebts.length && (
+                    <div className="rounded-[1.5rem] border border-dashed border-slate-200 bg-white p-6 text-center text-sm text-slate-500">
+                      No upcoming payments yet.
+                    </div>
+                  )}
+                </div>
+
+                <div className="hidden md:block overflow-x-auto">
                   <table className="w-full min-w-[720px] text-left">
                     <thead>
                       <tr className="border-b border-slate-100 text-xs uppercase tracking-[0.12em] text-slate-400">
@@ -797,9 +828,7 @@ function Home() {
                               {directionText(debt.direction)}
                             </span>
                           </td>
-                          <td className="py-4 font-semibold">
-                            {formatMoney(getDebtRemaining(debt), debt.currency)}
-                          </td>
+                          <td className="py-4 font-semibold">{formatMoney(getDebtRemaining(debt), debt.currency)}</td>
                           <td className="py-4 text-slate-500">{formatDate(debt.due_date)}</td>
                           <td className="py-4">
                             <span className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${statusClass(debt.status)}`}>
@@ -993,7 +1022,54 @@ function Home() {
                 </div>
               </div>
 
-              <div className="overflow-x-auto">
+              <div className="space-y-4 md:hidden">
+                {visibleDebts.map((debt) => (
+                  <article className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4 shadow-sm" key={debt.id}>
+                    <div className="flex items-start justify-between gap-3">
+                      <button
+                        className="min-w-0 text-left"
+                        type="button"
+                        onClick={() => openDebtDetails(debt)}
+                      >
+                        <p className="font-semibold text-slate-900">{getDebtTitle(debt)}</p>
+                        <p className="mt-1 truncate text-sm text-slate-500">{debt.description || 'No description'}</p>
+                      </button>
+                      <span className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${directionClass(debt.direction)}`}>
+                        {directionText(debt.direction)}
+                      </span>
+                    </div>
+
+                    <div className="mt-4 grid gap-2 text-sm text-slate-600">
+                      <p>Amount: <span className="font-semibold text-slate-900">{formatMoney(debt.amount, debt.currency)}</span></p>
+                      <p>Remaining: <span className="font-semibold text-slate-900">{formatMoney(getDebtRemaining(debt), debt.currency)}</span></p>
+                      <p>Due: <span className="font-semibold text-slate-900">{formatDate(debt.due_date)}</span></p>
+                      <p>Status: <span className="font-semibold text-slate-900">{debt.status}</span></p>
+                    </div>
+
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <Button size="sm" variant="outline" onClick={() => { void editDebt(debt.id) }}>
+                        Edit
+                      </Button>
+                      <Button size="sm" variant="danger" onClick={() => { void removeDebt(debt.id) }}>
+                        Delete
+                      </Button>
+                    </div>
+                  </article>
+                ))}
+
+                {!visibleDebts.length && (
+                  <div className="rounded-[1.5rem] border border-dashed border-slate-200 bg-white p-6 text-center text-sm text-slate-500">
+                    <p>No debts yet. Add a contact and create your first debt.</p>
+                    <div className="mt-4 flex justify-center gap-3">
+                      <Button size="sm" variant="outline" onClick={() => { void addDemoData() }}>
+                        Add demo data
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="hidden md:block overflow-x-auto">
                 <table className="w-full min-w-[920px] text-left">
                   <thead>
                     <tr className="border-b border-slate-100 text-xs uppercase tracking-[0.12em] text-slate-400">
@@ -1041,22 +1117,10 @@ function Home() {
                         </td>
                         <td className="py-4">
                           <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => {
-                                void editDebt(debt.id)
-                              }}
-                            >
+                            <Button size="sm" variant="outline" onClick={() => { void editDebt(debt.id) }}>
                               Edit
                             </Button>
-                            <Button
-                              size="sm"
-                              variant="danger"
-                              onClick={() => {
-                                void removeDebt(debt.id)
-                              }}
-                            >
+                            <Button size="sm" variant="danger" onClick={() => { void removeDebt(debt.id) }}>
                               Delete
                             </Button>
                           </div>
@@ -1071,13 +1135,7 @@ function Home() {
                             No debts yet. Add a contact and create your first debt.
                           </p>
                           <div className="mt-4 flex justify-center gap-3">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => {
-                                void addDemoData()
-                              }}
-                            >
+                            <Button size="sm" variant="outline" onClick={() => { void addDemoData() }}>
                               Add demo data
                             </Button>
                           </div>

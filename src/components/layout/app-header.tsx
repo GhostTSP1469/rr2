@@ -46,10 +46,10 @@ export function AppHeader({ page, user, search, setSearch, getAllData }: AppHead
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <label className="flex min-w-[280px] items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-400">
+        <label className="flex min-w-0 w-full items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-400">
           <span className="material-symbols-outlined text-[20px]">search</span>
           <input
-            className="w-full bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
+            className="w-full min-w-0 bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
             placeholder="Search contacts, debts..."
             value={search}
             onChange={(event) => setSearch(event.target.value)}
@@ -57,6 +57,7 @@ export function AppHeader({ page, user, search, setSearch, getAllData }: AppHead
         </label>
 
         <Button
+          className="w-full sm:w-auto"
           variant="outline"
           onClick={() => {
             void getAllData()
