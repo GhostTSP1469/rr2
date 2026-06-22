@@ -4,6 +4,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { Debt, useBear } from '../store/authStore'
 import { FeedbackMessages } from './common/feedback-messages'
 import { LogoutToast } from './common/logout-toast'
+import { BalanceCard, MetricCard } from './dashboard/dashboard-cards'
 import { FolderCard } from './folders/folder-card'
 import { AppHeader } from './layout/app-header'
 import { AppSidebar } from './layout/app-sidebar'
@@ -92,22 +93,22 @@ const directionText = (direction: string) => {
 
 const statusClass = (status: string) => {
   if (status === 'paid') {
-    return 'bg-emerald-50 text-emerald-700 ring-emerald-200'
+    return 'status-success'
   }
 
   if (status === 'partial') {
-    return 'bg-sky-50 text-sky-700 ring-sky-200'
+    return 'status-info'
   }
 
-  return 'bg-amber-50 text-amber-700 ring-amber-200'
+  return 'status-warning'
 }
 
 const directionClass = (direction: string) => {
   if (direction === 'i_owe_them') {
-    return 'bg-orange-50 text-orange-700 ring-orange-200'
+    return 'status-warning'
   }
 
-  return 'bg-emerald-50 text-emerald-700 ring-emerald-200'
+  return 'status-success'
 }
 
 function Home() {
@@ -632,11 +633,11 @@ function Home() {
   )
 
   return (
-    <main className="min-h-screen bg-[#f9f9ff] font-sans text-[#111c2d]">
+    <main className="app-shell">
       <div className="flex min-h-screen">
         <AppSidebar openPage={openPage} page={page} />
 
-        <section className="w-full px-4 py-6 pb-28 lg:ml-[260px] lg:px-8 lg:pb-12">
+        <section className="w-full px-4 py-5 pb-28 sm:px-6 lg:ml-[272px] lg:px-8 lg:py-7 lg:pb-12 xl:px-10">
           <AppHeader
             getAllData={getAllData}
             page={page}
@@ -650,12 +651,13 @@ function Home() {
           {page === 'dashboard' && (
             <div className="space-y-6">
               {hasNoData && (
-                <section className="rounded-[1.5rem] border border-dashed border-[#c0c1ff] bg-[#f0f3ff] p-6 shadow-sm">
+                <section className="rounded-2xl border border-dashed border-[color-mix(in_srgb,var(--primary)_35%,var(--border))] bg-[var(--primary-soft)] p-5 sm:p-6">
                   <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                     <div>
-                      <h2 className="text-xl font-bold tracking-[-0.03em]">No API data yet</h2>
-                      <p className="mt-1 text-sm text-slate-600">
-                        Click this and the app will send POST requests for folder, contact, debt and payment.
+                      <p className="eyebrow">Quick start</p>
+                      <h2 className="mt-2 text-xl font-bold tracking-[-0.03em]">Your workspace is ready</h2>
+                      <p className="mt-1 text-sm text-[var(--muted)]">
+                        Add a small demo set to preview folders, contacts, debts and payments.
                       </p>
                     </div>
                     <Button
@@ -670,67 +672,40 @@ function Home() {
                 </section>
               )}
 
-              <section className="grid gap-5 xl:grid-cols-4">
-                <div className="rounded-[1.5rem] border border-slate-200 bg-white p-6 shadow-sm xl:col-span-2">
-                  <p className="text-sm font-medium text-slate-500">Net balance</p>
-                  <h2 className="mt-3 text-5xl font-bold tracking-[-0.05em] text-[#111c2d]">
-                    {formatMoney(summary?.outstanding.net_balance, 'USD')}
-                  </h2>
-                  <p className="mt-4 text-sm text-slate-500">
-                    Positive means more money should come back to you.
-                  </p>
-                </div>
-
-                <div className="rounded-[1.5rem] border border-emerald-100 bg-emerald-50 p-6 shadow-sm">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500 text-white">
-                    <span className="material-symbols-outlined">trending_up</span>
-                  </div>
-                  <p className="mt-5 text-sm font-medium text-emerald-700">They owe me</p>
-                  <p className="mt-2 text-3xl font-bold text-emerald-800">
-                    {formatMoney(summary?.outstanding.they_owe_me, 'USD')}
-                  </p>
-                </div>
-
-                <div className="rounded-[1.5rem] border border-orange-100 bg-orange-50 p-6 shadow-sm">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-500 text-white">
-                    <span className="material-symbols-outlined">trending_down</span>
-                  </div>
-                  <p className="mt-5 text-sm font-medium text-orange-700">I owe them</p>
-                  <p className="mt-2 text-3xl font-bold text-orange-800">
-                    {formatMoney(summary?.outstanding.i_owe_them, 'USD')}
-                  </p>
-                </div>
+              <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                <BalanceCard value={formatMoney(summary?.outstanding.net_balance, 'USD')} />
+                <MetricCard
+                  icon="south_west"
+                  label="They owe me"
+                  tone="success"
+                  value={formatMoney(summary?.outstanding.they_owe_me, 'USD')}
+                />
+                <MetricCard
+                  icon="north_east"
+                  label="I owe them"
+                  tone="warning"
+                  value={formatMoney(summary?.outstanding.i_owe_them, 'USD')}
+                />
               </section>
 
-              <section className="grid gap-5 lg:grid-cols-4">
-                <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm">
-                  <p className="text-sm font-medium text-slate-500">Total debts</p>
-                  <p className="mt-2 text-3xl font-bold">{summary?.counts.total || debts.length}</p>
-                </div>
-                <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm">
-                  <p className="text-sm font-medium text-slate-500">Pending</p>
-                  <p className="mt-2 text-3xl font-bold">{summary?.counts.pending || 0}</p>
-                </div>
-                <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm">
-                  <p className="text-sm font-medium text-slate-500">Partial</p>
-                  <p className="mt-2 text-3xl font-bold">{summary?.counts.partial || 0}</p>
-                </div>
-                <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm">
-                  <p className="text-sm font-medium text-slate-500">Contacts</p>
-                  <p className="mt-2 text-3xl font-bold">{summary?.contacts_count || contacts.length}</p>
-                </div>
+              <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <MetricCard icon="receipt_long" label="Total debts" value={String(summary?.counts.total || debts.length)} />
+                <MetricCard icon="schedule" label="Pending" tone="warning" value={String(summary?.counts.pending || 0)} />
+                <MetricCard icon="timelapse" label="Partially paid" tone="primary" value={String(summary?.counts.partial || 0)} />
+                <MetricCard icon="group" label="Contacts" value={String(summary?.contacts_count || contacts.length)} />
               </section>
 
-              <section className="grid gap-5 lg:grid-cols-[0.85fr_1.65fr]">
-                <div className="rounded-[1.5rem] border border-[#d8e3fb] bg-white p-6 shadow-sm">
-                  <h2 className="text-xl font-bold tracking-[-0.03em]">Debt status overview</h2>
-                  <div className="mt-10 space-y-6">
+              <section className="grid gap-4 lg:grid-cols-[0.8fr_1.7fr]">
+                <div className="surface-card rounded-2xl p-5 sm:p-6">
+                  <p className="eyebrow">Portfolio health</p>
+                  <h2 className="mt-2 text-lg font-bold tracking-[-0.025em]">Debt status</h2>
+                  <div className="mt-8 space-y-6">
                     <div>
                       <div className="mb-2 flex items-center justify-between text-sm">
                         <span>Pending</span>
                         <span className="font-semibold">{pendingPercent}%</span>
                       </div>
-                      <div className="h-2 rounded-full bg-slate-100">
+                      <div className="h-2 rounded-full bg-[var(--surface-muted)]">
                         <div className="h-full rounded-full bg-amber-500" style={{ width: `${pendingPercent}%` }} />
                       </div>
                     </div>
@@ -739,8 +714,8 @@ function Home() {
                         <span>Partially paid</span>
                         <span className="font-semibold">{partialPercent}%</span>
                       </div>
-                      <div className="h-2 rounded-full bg-slate-100">
-                        <div className="h-full rounded-full bg-[#4648d4]" style={{ width: `${partialPercent}%` }} />
+                      <div className="h-2 rounded-full bg-[var(--surface-muted)]">
+                        <div className="h-full rounded-full bg-[var(--primary)]" style={{ width: `${partialPercent}%` }} />
                       </div>
                     </div>
                     <div>
@@ -748,59 +723,59 @@ function Home() {
                         <span>Paid</span>
                         <span className="font-semibold">{paidPercent}%</span>
                       </div>
-                      <div className="h-2 rounded-full bg-slate-100">
+                      <div className="h-2 rounded-full bg-[var(--surface-muted)]">
                         <div className="h-full rounded-full bg-emerald-500" style={{ width: `${paidPercent}%` }} />
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="rounded-[1.5rem] border border-[#d8e3fb] bg-white p-6 shadow-sm">
-                <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <h2 className="text-xl font-bold tracking-[-0.03em]">Upcoming payments</h2>
-                    <p className="text-sm text-slate-500">Closest due dates from your active debts.</p>
+                <div className="surface-card rounded-2xl p-5 sm:p-6">
+                  <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p className="eyebrow">Next up</p>
+                      <h2 className="mt-2 text-lg font-bold tracking-[-0.025em]">Upcoming payments</h2>
+                    </div>
+                    <Button variant="outline" size="sm" onClick={() => openPage('debts')}>
+                      View all
+                    </Button>
                   </div>
-                  <Button variant="outline" size="sm" onClick={() => openPage('debts')}>
-                    View all
-                  </Button>
-                </div>
 
                 <div className="space-y-4 md:hidden">
                   {upcomingDebts.map((debt) => (
-                    <article className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4 shadow-sm" key={debt.id}>
+                    <article className="surface-muted rounded-xl p-4" key={debt.id}>
                       <div className="flex items-start justify-between gap-3">
                         <button
                           className="min-w-0 text-left"
                           type="button"
                           onClick={() => openDebtDetails(debt)}
                         >
-                          <p className="font-semibold text-slate-900">{getDebtTitle(debt)}</p>
-                          <p className="mt-1 text-sm text-slate-500">{directionText(debt.direction)}</p>
+                          <p className="font-semibold text-[var(--text)]">{getDebtTitle(debt)}</p>
+                          <p className="mt-1 text-sm text-[var(--muted)]">{directionText(debt.direction)}</p>
                         </button>
                         <span className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${statusClass(debt.status)}`}>
                           {debt.status}
                         </span>
                       </div>
 
-                      <div className="mt-4 grid gap-2 text-sm text-slate-600">
-                        <p>Amount: <span className="font-semibold text-slate-900">{formatMoney(getDebtRemaining(debt), debt.currency)}</span></p>
-                        <p>Due: <span className="font-semibold text-slate-900">{formatDate(debt.due_date)}</span></p>
+                      <div className="mt-4 grid gap-2 text-sm text-[var(--text-soft)]">
+                        <p>Amount: <span className="font-semibold text-[var(--text)]">{formatMoney(getDebtRemaining(debt), debt.currency)}</span></p>
+                        <p>Due: <span className="font-semibold text-[var(--text)]">{formatDate(debt.due_date)}</span></p>
                       </div>
                     </article>
                   ))}
 
                   {!upcomingDebts.length && (
-                    <div className="rounded-[1.5rem] border border-dashed border-slate-200 bg-white p-6 text-center text-sm text-slate-500">
+                    <div className="rounded-xl border border-dashed border-[var(--border)] p-6 text-center text-sm text-[var(--muted)]">
                       No upcoming payments yet.
                     </div>
                   )}
                 </div>
 
-                <div className="hidden md:block overflow-x-auto">
-                  <table className="w-full min-w-[720px] text-left">
+                <div className="hidden overflow-x-auto md:block">
+                  <table className="data-table w-full min-w-[720px] text-left">
                     <thead>
-                      <tr className="border-b border-slate-100 text-xs uppercase tracking-[0.12em] text-slate-400">
+                      <tr className="border-b border-[var(--border)] text-xs uppercase tracking-[0.12em] text-[var(--faint)]">
                         <th className="py-3 font-semibold">Contact</th>
                         <th className="py-3 font-semibold">Direction</th>
                         <th className="py-3 font-semibold">Amount</th>
@@ -810,14 +785,14 @@ function Home() {
                     </thead>
                     <tbody>
                       {upcomingDebts.map((debt) => (
-                        <tr className="border-b border-slate-100 last:border-0" key={debt.id}>
+                        <tr className="border-b border-[var(--border)] last:border-0" key={debt.id}>
                           <td className="py-4">
                             <button
                               className="flex items-center gap-3 text-left"
                               type="button"
                               onClick={() => openDebtDetails(debt)}
                             >
-                              <span className="grid h-10 w-10 place-items-center rounded-full bg-[#e1e0ff] text-sm font-bold text-[#4648d4]">
+                              <span className="grid h-9 w-9 place-items-center rounded-xl bg-[var(--primary-soft)] text-xs font-bold text-[var(--primary-text)]">
                                 {getInitials(getDebtTitle(debt))}
                               </span>
                               <span className="font-semibold">{getDebtTitle(debt)}</span>
@@ -829,7 +804,7 @@ function Home() {
                             </span>
                           </td>
                           <td className="py-4 font-semibold">{formatMoney(getDebtRemaining(debt), debt.currency)}</td>
-                          <td className="py-4 text-slate-500">{formatDate(debt.due_date)}</td>
+                          <td className="py-4 text-[var(--muted)]">{formatDate(debt.due_date)}</td>
                           <td className="py-4">
                             <span className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${statusClass(debt.status)}`}>
                               {debt.status}
@@ -840,7 +815,7 @@ function Home() {
 
                       {!upcomingDebts.length && (
                         <tr>
-                          <td className="py-10 text-center text-sm text-slate-500" colSpan={5}>
+                          <td className="py-10 text-center text-sm text-[var(--muted)]" colSpan={5}>
                             No upcoming payments yet.
                           </td>
                         </tr>
@@ -856,7 +831,7 @@ function Home() {
           {page === 'contacts' && (
             <section className="space-y-5">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-sm font-medium text-slate-500">
+                <p className="text-sm font-medium text-[var(--muted)]">
                   {visibleContacts.length} contacts in your ledger
                 </p>
                 <Button onClick={openContactModal}>
@@ -864,25 +839,25 @@ function Home() {
                 </Button>
               </div>
 
-              <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {visibleContacts.map((contact) => (
-                  <article className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm" key={contact.id}>
+                  <article className="surface-card group rounded-2xl p-5 transition duration-200 hover:-translate-y-0.5 hover:shadow-[var(--shadow-md)]" key={contact.id}>
                     <div className="flex items-start justify-between gap-3">
                       <button
-                        className="flex items-center gap-4 text-left"
+                        className="flex min-w-0 items-center gap-3.5 text-left"
                         type="button"
                         onClick={() => openContactDetails(contact.id)}
                       >
-                        <div className="grid h-14 w-14 place-items-center rounded-2xl bg-[#e1e0ff] text-lg font-bold text-[#4648d4]">
+                        <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-[var(--primary-soft)] text-base font-bold text-[var(--primary-text)]">
                           {getInitials(contact.name)}
                         </div>
-                        <div>
-                          <h2 className="text-lg font-bold">{contact.name}</h2>
-                          <p className="text-sm text-slate-500">{contact.email || 'No email'}</p>
+                        <div className="min-w-0">
+                          <h2 className="truncate text-base font-bold text-[var(--text)]">{contact.name}</h2>
+                          <p className="truncate text-sm text-[var(--muted)]">{contact.email || 'No email'}</p>
                         </div>
                       </button>
                       <Button
-                        className="rounded-full text-slate-400"
+                        className="rounded-full text-[var(--faint)]"
                         size="icon"
                         variant="ghost"
                         onClick={() => editContact(contact.id)}
@@ -891,21 +866,21 @@ function Home() {
                       </Button>
                     </div>
 
-                    <div className="mt-5 space-y-3 text-sm text-slate-600">
+                    <div className="mt-5 space-y-2.5 border-t border-[var(--border)] pt-4 text-sm text-[var(--text-soft)]">
                       <p className="flex items-center gap-2">
-                        <span className="material-symbols-outlined text-[18px] text-slate-400">call</span>
+                        <span className="material-symbols-outlined text-[18px] text-[var(--faint)]">call</span>
                         {contact.phone || 'No phone'}
                       </p>
                       <p className="flex items-center gap-2">
-                        <span className="material-symbols-outlined text-[18px] text-slate-400">folder</span>
+                        <span className="material-symbols-outlined text-[18px] text-[var(--faint)]">folder</span>
                         {contact.folder?.name || getContactFolderName(contact.folder_id)}
                       </p>
-                      <p className="line-clamp-2 min-h-10 text-slate-500">
+                      <p className="line-clamp-2 min-h-10 text-[var(--muted)]">
                         {contact.note || 'No notes yet.'}
                       </p>
                     </div>
 
-                    <div className="mt-5 flex gap-2">
+                    <div className="mt-5 flex gap-2 border-t border-[var(--border)] pt-4">
                       <Button
                         className="flex-1"
                         size="sm"
@@ -928,8 +903,8 @@ function Home() {
                 ))}
 
                 {!visibleContacts.length && (
-                  <div className="rounded-[1.5rem] border border-dashed border-slate-200 bg-white p-8 text-center md:col-span-2 xl:col-span-3">
-                    <p className="text-sm text-slate-500">
+                  <div className="rounded-2xl border border-dashed border-[var(--border)] p-8 text-center md:col-span-2 xl:col-span-3">
+                    <p className="text-sm text-[var(--muted)]">
                       No contacts yet. Add a contact first, then create debts.
                     </p>
                     <div className="mt-4 flex justify-center gap-3">
@@ -955,7 +930,7 @@ function Home() {
           {page === 'folders' && (
             <section className="space-y-5">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-sm font-medium text-slate-500">
+                <p className="text-sm font-medium text-[var(--muted)]">
                   Organize contacts by relationship or context.
                 </p>
                 <Button onClick={openFolderModal}>
@@ -963,7 +938,7 @@ function Home() {
                 </Button>
               </div>
 
-              <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                 {folders.map((folder) => {
                   const balance = getFolderBalance(folder.id)
                   const cardColor = folder.color || folderColors[0]
@@ -984,8 +959,8 @@ function Home() {
                 })}
 
                 {!folders.length && (
-                  <div className="rounded-[1.5rem] border border-dashed border-slate-200 bg-white p-8 text-center md:col-span-2 xl:col-span-4">
-                    <p className="text-sm text-slate-500">
+                  <div className="rounded-2xl border border-dashed border-[var(--border)] p-8 text-center md:col-span-2 xl:col-span-4">
+                    <p className="text-sm text-[var(--muted)]">
                       No folders yet. Create one if you want to group contacts.
                     </p>
                     <Button className="mt-4" size="sm" onClick={openFolderModal}>
@@ -998,15 +973,15 @@ function Home() {
           )}
 
           {page === 'debts' && (
-            <section className="rounded-[1.5rem] border border-slate-200 bg-white p-6 shadow-sm">
+            <section className="surface-card rounded-2xl p-4 sm:p-6">
               <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
                   <h2 className="text-xl font-bold tracking-[-0.03em]">All debts</h2>
-                  <p className="text-sm text-slate-500">Create, edit, delete and open debt details.</p>
+                  <p className="text-sm text-[var(--muted)]">Create, edit, delete and open debt details.</p>
                 </div>
                 <div className="flex flex-wrap gap-3">
                   <select
-                    className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 outline-none"
+                    className="h-11 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 text-sm font-semibold text-[var(--text-soft)] outline-none"
                     onChange={(event) => {
                       void getDebts(event.target.value ? { status: event.target.value } : undefined)
                     }}
@@ -1024,26 +999,26 @@ function Home() {
 
               <div className="space-y-4 md:hidden">
                 {visibleDebts.map((debt) => (
-                  <article className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4 shadow-sm" key={debt.id}>
+                  <article className="surface-muted rounded-xl p-4" key={debt.id}>
                     <div className="flex items-start justify-between gap-3">
                       <button
                         className="min-w-0 text-left"
                         type="button"
                         onClick={() => openDebtDetails(debt)}
                       >
-                        <p className="font-semibold text-slate-900">{getDebtTitle(debt)}</p>
-                        <p className="mt-1 truncate text-sm text-slate-500">{debt.description || 'No description'}</p>
+                        <p className="font-semibold text-[var(--text)]">{getDebtTitle(debt)}</p>
+                        <p className="mt-1 truncate text-sm text-[var(--muted)]">{debt.description || 'No description'}</p>
                       </button>
                       <span className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${directionClass(debt.direction)}`}>
                         {directionText(debt.direction)}
                       </span>
                     </div>
 
-                    <div className="mt-4 grid gap-2 text-sm text-slate-600">
-                      <p>Amount: <span className="font-semibold text-slate-900">{formatMoney(debt.amount, debt.currency)}</span></p>
-                      <p>Remaining: <span className="font-semibold text-slate-900">{formatMoney(getDebtRemaining(debt), debt.currency)}</span></p>
-                      <p>Due: <span className="font-semibold text-slate-900">{formatDate(debt.due_date)}</span></p>
-                      <p>Status: <span className="font-semibold text-slate-900">{debt.status}</span></p>
+                    <div className="mt-4 grid gap-2 text-sm text-[var(--text-soft)]">
+                      <p>Amount: <span className="font-semibold text-[var(--text)]">{formatMoney(debt.amount, debt.currency)}</span></p>
+                      <p>Remaining: <span className="font-semibold text-[var(--text)]">{formatMoney(getDebtRemaining(debt), debt.currency)}</span></p>
+                      <p>Due: <span className="font-semibold text-[var(--text)]">{formatDate(debt.due_date)}</span></p>
+                      <p>Status: <span className="font-semibold text-[var(--text)]">{debt.status}</span></p>
                     </div>
 
                     <div className="mt-4 flex flex-wrap gap-2">
@@ -1058,7 +1033,7 @@ function Home() {
                 ))}
 
                 {!visibleDebts.length && (
-                  <div className="rounded-[1.5rem] border border-dashed border-slate-200 bg-white p-6 text-center text-sm text-slate-500">
+                  <div className="rounded-xl border border-dashed border-[var(--border)] p-6 text-center text-sm text-[var(--muted)]">
                     <p>No debts yet. Add a contact and create your first debt.</p>
                     <div className="mt-4 flex justify-center gap-3">
                       <Button size="sm" variant="outline" onClick={() => { void addDemoData() }}>
@@ -1069,10 +1044,10 @@ function Home() {
                 )}
               </div>
 
-              <div className="hidden md:block overflow-x-auto">
-                <table className="w-full min-w-[920px] text-left">
+              <div className="hidden overflow-x-auto md:block">
+                <table className="data-table w-full min-w-[920px] text-left">
                   <thead>
-                    <tr className="border-b border-slate-100 text-xs uppercase tracking-[0.12em] text-slate-400">
+                    <tr className="border-b border-[var(--border)] text-xs uppercase tracking-[0.12em] text-[var(--faint)]">
                       <th className="py-3 font-semibold">Contact</th>
                       <th className="py-3 font-semibold">Direction</th>
                       <th className="py-3 font-semibold">Amount</th>
@@ -1084,19 +1059,19 @@ function Home() {
                   </thead>
                   <tbody>
                     {visibleDebts.map((debt) => (
-                      <tr className="border-b border-slate-100 last:border-0" key={debt.id}>
+                      <tr className="border-b border-[var(--border)] last:border-0" key={debt.id}>
                         <td className="py-4">
                           <button
                             className="flex items-center gap-3 text-left"
                             type="button"
                             onClick={() => openDebtDetails(debt)}
                           >
-                            <span className="grid h-10 w-10 place-items-center rounded-full bg-[#e1e0ff] text-sm font-bold text-[#4648d4]">
+                            <span className="grid h-9 w-9 place-items-center rounded-xl bg-[var(--primary-soft)] text-xs font-bold text-[var(--primary-text)]">
                               {getInitials(getDebtTitle(debt))}
                             </span>
                             <span>
                               <span className="block font-semibold">{getDebtTitle(debt)}</span>
-                              <span className="block max-w-[220px] truncate text-sm text-slate-500">
+                              <span className="block max-w-[220px] truncate text-sm text-[var(--muted)]">
                                 {debt.description || 'No description'}
                               </span>
                             </span>
@@ -1109,7 +1084,7 @@ function Home() {
                         </td>
                         <td className="py-4 font-semibold">{formatMoney(debt.amount, debt.currency)}</td>
                         <td className="py-4 font-semibold">{formatMoney(getDebtRemaining(debt), debt.currency)}</td>
-                        <td className="py-4 text-slate-500">{formatDate(debt.due_date)}</td>
+                        <td className="py-4 text-[var(--muted)]">{formatDate(debt.due_date)}</td>
                         <td className="py-4">
                           <span className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${statusClass(debt.status)}`}>
                             {debt.status}
@@ -1131,7 +1106,7 @@ function Home() {
                     {!visibleDebts.length && (
                       <tr>
                         <td className="py-10 text-center" colSpan={7}>
-                          <p className="text-sm text-slate-500">
+                          <p className="text-sm text-[var(--muted)]">
                             No debts yet. Add a contact and create your first debt.
                           </p>
                           <div className="mt-4 flex justify-center gap-3">
@@ -1149,17 +1124,17 @@ function Home() {
           )}
 
           {page === 'detail' && selectedDebt && (
-            <section className="mx-auto grid max-w-5xl gap-6 xl:grid-cols-[1fr_320px]">
+            <section className="mx-auto grid max-w-6xl gap-5 xl:grid-cols-[1fr_320px]">
               <div className="flex flex-col gap-4 xl:col-span-2 xl:flex-row xl:items-center xl:justify-between">
                 <div className="flex items-center gap-3">
                   <button
-                    className="grid h-9 w-9 place-items-center rounded-xl text-slate-600 transition hover:bg-slate-100"
+                    className="grid h-9 w-9 place-items-center rounded-xl text-[var(--text-soft)] transition hover:bg-[var(--surface-muted)]"
                     type="button"
                     onClick={() => openPage('debts')}
                   >
                     <span className="material-symbols-outlined text-[20px]">arrow_back</span>
                   </button>
-                  <div className="grid h-12 w-12 place-items-center overflow-hidden rounded-full bg-[#e1e0ff] text-sm font-bold text-[#4648d4]">
+                  <div className="grid h-12 w-12 place-items-center overflow-hidden rounded-xl bg-[var(--primary-soft)] text-sm font-bold text-[var(--primary-text)]">
                     {getInitials(getDebtTitle(selectedDebt))}
                   </div>
                   <div>
@@ -1189,80 +1164,78 @@ function Home() {
                 </Button>
               </div>
 
-              <div className="space-y-5">
-                <div className="rounded-[1.5rem] border border-[#d8e3fb] bg-white p-6 shadow-sm">
-                  <h3 className="text-lg font-bold">Repayment Progress</h3>
+              <div className="space-y-4">
+                <div className="surface-card rounded-2xl p-5 sm:p-6">
+                  <p className="eyebrow">Repayment progress</p>
                   <div className="mt-5 flex items-end justify-between gap-4">
                     <div>
-                      <p className="text-xs font-medium text-slate-500">Paid</p>
-                      <p className="text-3xl font-bold text-[#4648d4]">{formatMoney(selectedPaid, selectedDebt.currency)}</p>
+                      <p className="text-xs font-medium text-[var(--muted)]">Paid</p>
+                      <p className="text-3xl font-bold text-[var(--primary-text)]">{formatMoney(selectedPaid, selectedDebt.currency)}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-xs font-medium text-slate-500">Total Amount</p>
+                      <p className="text-xs font-medium text-[var(--muted)]">Total Amount</p>
                       <p className="text-2xl font-bold">{formatMoney(selectedDebt.amount, selectedDebt.currency)}</p>
                     </div>
                   </div>
-                  <div className="mt-4 h-3 overflow-hidden rounded-full bg-[#d8e3fb]">
-                    <div className="h-full rounded-full bg-[#4648d4]" style={{ width: `${selectedProgress}%` }} />
+                  <div className="mt-4 h-2.5 overflow-hidden rounded-full bg-[var(--surface-muted)]">
+                    <div className="h-full rounded-full bg-[var(--primary)]" style={{ width: `${selectedProgress}%` }} />
                   </div>
-                  <p className="mt-2 text-right text-xs text-slate-500">{selectedProgress}% complete</p>
+                  <p className="mt-2 text-right text-xs text-[var(--muted)]">{selectedProgress}% complete</p>
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="rounded-[1.25rem] border border-[#d8e3fb] bg-white p-5 shadow-sm">
-                    <p className="text-xs font-medium text-slate-500">Remaining</p>
+                  <div className="surface-muted rounded-2xl p-5">
+                    <p className="eyebrow !text-[10px]">Remaining</p>
                     <p className="mt-2 text-2xl font-bold">{formatMoney(safeSelectedRemaining, selectedDebt.currency)}</p>
                   </div>
-                  <div className="rounded-[1.25rem] border border-[#d8e3fb] bg-white p-5 shadow-sm">
-                    <p className="text-xs font-medium text-slate-500">Currency</p>
+                  <div className="surface-muted rounded-2xl p-5">
+                    <p className="eyebrow !text-[10px]">Currency</p>
                     <p className="mt-2 text-2xl font-bold">{selectedDebt.currency}</p>
                   </div>
                 </div>
 
-                <div className="rounded-[1.25rem] border border-[#d8e3fb] bg-white p-5 shadow-sm">
-                  <p className="text-xs font-medium text-slate-500">Due date</p>
-                  <p className="mt-2 text-2xl font-bold">{formatDate(selectedDebt.due_date)}</p>
-                </div>
-
-                <div className="rounded-[1.25rem] border border-[#d8e3fb] bg-white p-5 shadow-sm">
-                  <p className="text-xs font-medium text-slate-500">Description</p>
-                  <p className="mt-2 text-base text-slate-700">{selectedDebt.description || 'No description'}</p>
-                </div>
-
-                <div className="rounded-[1.25rem] border border-[#d8e3fb] bg-white p-5 shadow-sm">
-                  <p className="text-xs font-medium text-slate-500">Contact info</p>
-                  <div className="mt-3 grid gap-2 text-sm text-slate-600">
-                    <span>Email: {selectedContact?.email || 'No email'}</span>
-                    <span>Phone: {selectedContact?.phone || 'No phone'}</span>
-                    <span>Folder: {getContactFolderName(selectedContact?.folder_id)}</span>
+                <div className="surface-card overflow-hidden rounded-2xl">
+                  <div className="p-5">
+                    <p className="eyebrow !text-[10px]">Due date</p>
+                    <p className="mt-2 text-xl font-bold">{formatDate(selectedDebt.due_date)}</p>
+                  </div>
+                  <div className="border-t border-[var(--border)] p-5">
+                    <p className="eyebrow !text-[10px]">Description</p>
+                    <p className="mt-2 text-sm leading-6 text-[var(--text-soft)]">{selectedDebt.description || 'No description'}</p>
+                  </div>
+                  <div className="border-t border-[var(--border)] p-5">
+                    <p className="eyebrow !text-[10px]">Contact</p>
+                    <div className="mt-3 grid gap-2 text-sm text-[var(--text-soft)] sm:grid-cols-3">
+                      <span className="truncate">{selectedContact?.email || 'No email'}</span>
+                      <span>{selectedContact?.phone || 'No phone'}</span>
+                      <span>{getContactFolderName(selectedContact?.folder_id)}</span>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <aside className="space-y-5">
-                <div className="rounded-[1.5rem] border border-[#d8e3fb] bg-white p-6 shadow-sm">
-                  <Button className="w-full" onClick={openPaymentModal}>
-                    <span className="material-symbols-outlined text-[18px]">add_circle</span>
-                    Record payment
-                  </Button>
-                </div>
+              <aside className="space-y-4">
+                <Button className="w-full" onClick={openPaymentModal}>
+                  <span className="material-symbols-outlined text-[18px]">add_circle</span>
+                  Record payment
+                </Button>
 
-                <div className="rounded-[1.5rem] border border-[#d8e3fb] bg-white p-6 shadow-sm">
-                  <h3 className="text-lg font-bold">Payment History</h3>
-                  <div className="mt-5 space-y-4 border-l border-[#d8e3fb] pl-4">
+                <div className="surface-card rounded-2xl p-5">
+                  <p className="eyebrow">Payment history</p>
+                  <div className="mt-5 space-y-4 border-l border-[var(--border)] pl-4">
                     {payments.map((payment) => (
                       <div className="relative" key={payment.id}>
                         <span className="absolute -left-[25px] top-1 grid h-5 w-5 place-items-center rounded-full bg-emerald-400 text-white">
                           <span className="material-symbols-outlined text-[14px]">check</span>
                         </span>
-                        <p className="text-xs text-slate-500">{formatDate(payment.paid_at || payment.created_at)}</p>
+                        <p className="text-xs text-[var(--muted)]">{formatDate(payment.paid_at || payment.created_at)}</p>
                         <p className="text-2xl font-bold">{formatMoney(payment.amount, selectedDebt.currency)}</p>
-                        <p className="text-sm text-slate-500">{payment.note || 'Payment recorded'}</p>
+                        <p className="text-sm text-[var(--muted)]">{payment.note || 'Payment recorded'}</p>
                       </div>
                     ))}
 
                     {!payments.length && (
-                      <p className="py-6 text-center text-sm text-slate-500">No payments recorded yet.</p>
+                      <p className="py-6 text-center text-sm text-[var(--muted)]">No payments recorded yet.</p>
                     )}
                   </div>
                 </div>
@@ -1270,10 +1243,27 @@ function Home() {
             </section>
           )}
 
+          {page === 'detail' && !selectedDebt && (
+            <section className="surface-card mx-auto max-w-xl rounded-2xl p-8 text-center">
+              <div className="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-[var(--primary-soft)] text-[var(--primary-text)]">
+                <span className="material-symbols-outlined">receipt_long</span>
+              </div>
+              <h2 className="mt-4 text-lg font-bold">{isLoading ? 'Loading debt...' : 'Debt not found'}</h2>
+              <p className="mt-2 text-sm text-[var(--muted)]">
+                {isLoading ? 'Fetching the latest record from the API.' : 'This debt may have been deleted or is unavailable.'}
+              </p>
+              {!isLoading && (
+                <Button className="mt-5" variant="outline" onClick={() => openPage('debts')}>
+                  Back to debts
+                </Button>
+              )}
+            </section>
+          )}
+
           {page === 'profile' && (
-            <section className="max-w-2xl rounded-[1.5rem] border border-slate-200 bg-white p-6 shadow-sm">
+            <section className="surface-card max-w-2xl rounded-2xl p-5 sm:p-6">
               <div className="flex items-center gap-4">
-                <div className="grid h-16 w-16 place-items-center rounded-2xl bg-[#e1e0ff] text-xl font-bold text-[#4648d4]">
+                <div className="grid h-16 w-16 place-items-center rounded-2xl bg-[var(--primary-soft)] text-xl font-bold text-[var(--primary-text)]">
                   {getInitials(user?.name || 'Debt User')}
                 </div>
                 <div>
@@ -1311,7 +1301,7 @@ function Home() {
                       </svg>
                     </Button>
                   </div>
-                  <p className="text-slate-500">{user?.email || 'No email'}</p>
+                  <p className="text-[var(--muted)]">{user?.email || 'No email'}</p>
                 </div>
               </div>
 
@@ -1341,10 +1331,10 @@ function Home() {
           </DialogHeader>
 
           <form className="space-y-4" onSubmit={paymentForm.handleSubmit(submitPayment)}>
-            <label className="block text-sm font-medium text-slate-700">
+            <label className="block text-sm font-medium text-[var(--text-soft)]">
               Amount
               <input
-                className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-[#4648d4] focus:ring-4 focus:ring-[#4648d4]/10"
+                className="mt-2 w-full rounded-xl border border-[var(--border)] px-4 py-3 outline-none focus:border-[var(--primary)] focus:ring-4 focus:ring-[#5557d9]/10"
                 max="1000000000"
                 min="1"
                 placeholder="250"
@@ -1360,18 +1350,18 @@ function Home() {
                 </p>
               )}
             </label>
-            <label className="block text-sm font-medium text-slate-700">
+            <label className="block text-sm font-medium text-[var(--text-soft)]">
               Paid at
               <input
-                className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-[#4648d4] focus:ring-4 focus:ring-[#4648d4]/10"
+                className="mt-2 w-full rounded-xl border border-[var(--border)] px-4 py-3 outline-none focus:border-[var(--primary)] focus:ring-4 focus:ring-[#5557d9]/10"
                 type="datetime-local"
                 {...paymentForm.register('paid_at')}
               />
             </label>
-            <label className="block text-sm font-medium text-slate-700">
+            <label className="block text-sm font-medium text-[var(--text-soft)]">
               Note
               <textarea
-                className="mt-2 min-h-28 w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-[#4648d4] focus:ring-4 focus:ring-[#4648d4]/10"
+                className="mt-2 min-h-28 w-full rounded-xl border border-[var(--border)] px-4 py-3 outline-none focus:border-[var(--primary)] focus:ring-4 focus:ring-[#5557d9]/10"
                 maxLength={500}
                 placeholder="Cash payment, bank transfer..."
                 {...paymentForm.register('note')}
@@ -1396,10 +1386,10 @@ function Home() {
           </DialogHeader>
 
           <form className="space-y-4" onSubmit={profileForm.handleSubmit(submitProfile)}>
-            <label className="block text-sm font-medium text-slate-700">
+            <label className="block text-sm font-medium text-[var(--text-soft)]">
               Name
               <input
-                className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-[#4648d4] focus:ring-4 focus:ring-[#4648d4]/10"
+                className="mt-2 w-full rounded-xl border border-[var(--border)] px-4 py-3 outline-none focus:border-[var(--primary)] focus:ring-4 focus:ring-[#5557d9]/10"
                 placeholder="Your name"
                 {...profileForm.register('name', {
                   required: 'Name is required',
@@ -1432,10 +1422,10 @@ function Home() {
           </DialogHeader>
 
           <form className="space-y-4" onSubmit={folderForm.handleSubmit(submitFolder)}>
-            <label className="block text-sm font-medium text-slate-700">
+            <label className="block text-sm font-medium text-[var(--text-soft)]">
               Name
               <input
-                className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-[#4648d4] focus:ring-4 focus:ring-[#4648d4]/10"
+                className="mt-2 w-full rounded-xl border border-[var(--border)] px-4 py-3 outline-none focus:border-[var(--primary)] focus:ring-4 focus:ring-[#5557d9]/10"
                 placeholder="Family"
                 {...folderForm.register('name', {
                   required: 'Folder name is required',
@@ -1452,7 +1442,7 @@ function Home() {
               )}
             </label>
             <div>
-              <p className="text-sm font-medium text-slate-700">Color</p>
+              <p className="text-sm font-medium text-[var(--text-soft)]">Color</p>
               <input type="hidden" {...folderForm.register('color')} />
               <div className="mt-2 flex gap-2">
                 {folderColors.map((color) => (
@@ -1490,10 +1480,10 @@ function Home() {
           </DialogHeader>
 
           <form className="grid gap-4 sm:grid-cols-2" onSubmit={contactForm.handleSubmit(submitContact)}>
-            <label className="block text-sm font-medium text-slate-700 sm:col-span-2">
+            <label className="block text-sm font-medium text-[var(--text-soft)] sm:col-span-2">
               Name
               <input
-                className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-[#4648d4] focus:ring-4 focus:ring-[#4648d4]/10"
+                className="mt-2 w-full rounded-xl border border-[var(--border)] px-4 py-3 outline-none focus:border-[var(--primary)] focus:ring-4 focus:ring-[#5557d9]/10"
                 placeholder="Sarah Miller"
                 {...contactForm.register('name', {
                   required: 'Contact name is required',
@@ -1509,10 +1499,10 @@ function Home() {
                 </p>
               )}
             </label>
-            <label className="block text-sm font-medium text-slate-700">
+            <label className="block text-sm font-medium text-[var(--text-soft)]">
               Email
               <input
-                className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-[#4648d4] focus:ring-4 focus:ring-[#4648d4]/10"
+                className="mt-2 w-full rounded-xl border border-[var(--border)] px-4 py-3 outline-none focus:border-[var(--primary)] focus:ring-4 focus:ring-[#5557d9]/10"
                 placeholder="sarah@mail.com"
                 {...contactForm.register('email', {
                   validate: (value) =>
@@ -1525,18 +1515,18 @@ function Home() {
                 </p>
               )}
             </label>
-            <label className="block text-sm font-medium text-slate-700">
+            <label className="block text-sm font-medium text-[var(--text-soft)]">
               Phone
               <input
-                className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-[#4648d4] focus:ring-4 focus:ring-[#4648d4]/10"
+                className="mt-2 w-full rounded-xl border border-[var(--border)] px-4 py-3 outline-none focus:border-[var(--primary)] focus:ring-4 focus:ring-[#5557d9]/10"
                 placeholder="+1 555 000"
                 {...contactForm.register('phone')}
               />
             </label>
-            <label className="block text-sm font-medium text-slate-700 sm:col-span-2">
+            <label className="block text-sm font-medium text-[var(--text-soft)] sm:col-span-2">
               Folder
               <select
-                className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-[#4648d4] focus:ring-4 focus:ring-[#4648d4]/10"
+                className="mt-2 w-full rounded-xl border border-[var(--border)] px-4 py-3 outline-none focus:border-[var(--primary)] focus:ring-4 focus:ring-[#5557d9]/10"
                 {...contactForm.register('folder_id')}
               >
                 <option value="">No folder</option>
@@ -1547,10 +1537,10 @@ function Home() {
                 ))}
               </select>
             </label>
-            <label className="block text-sm font-medium text-slate-700 sm:col-span-2">
+            <label className="block text-sm font-medium text-[var(--text-soft)] sm:col-span-2">
               Note
               <textarea
-                className="mt-2 min-h-24 w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-[#4648d4] focus:ring-4 focus:ring-[#4648d4]/10"
+                className="mt-2 min-h-24 w-full rounded-xl border border-[var(--border)] px-4 py-3 outline-none focus:border-[var(--primary)] focus:ring-4 focus:ring-[#5557d9]/10"
                 placeholder="Short note"
                 {...contactForm.register('note')}
               />
@@ -1574,10 +1564,10 @@ function Home() {
           </DialogHeader>
 
           <form className="grid gap-4 sm:grid-cols-2" onSubmit={debtForm.handleSubmit(submitDebt)}>
-            <label className="block text-sm font-medium text-slate-700 sm:col-span-2">
+            <label className="block text-sm font-medium text-[var(--text-soft)] sm:col-span-2">
               Contact
               <select
-                className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-[#4648d4] focus:ring-4 focus:ring-[#4648d4]/10"
+                className="mt-2 w-full rounded-xl border border-[var(--border)] px-4 py-3 outline-none focus:border-[var(--primary)] focus:ring-4 focus:ring-[#5557d9]/10"
                 {...debtForm.register('contact_id', {
                   required: 'Contact is required',
                 })}
@@ -1595,20 +1585,20 @@ function Home() {
                 </p>
               )}
             </label>
-            <label className="block text-sm font-medium text-slate-700">
+            <label className="block text-sm font-medium text-[var(--text-soft)]">
               Direction
               <select
-                className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-[#4648d4] focus:ring-4 focus:ring-[#4648d4]/10"
+                className="mt-2 w-full rounded-xl border border-[var(--border)] px-4 py-3 outline-none focus:border-[var(--primary)] focus:ring-4 focus:ring-[#5557d9]/10"
                 {...debtForm.register('direction')}
               >
                 <option value="they_owe_me">They owe me</option>
                 <option value="i_owe_them">I owe them</option>
               </select>
             </label>
-            <label className="block text-sm font-medium text-slate-700">
+            <label className="block text-sm font-medium text-[var(--text-soft)]">
               Status
               <select
-                className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-[#4648d4] focus:ring-4 focus:ring-[#4648d4]/10"
+                className="mt-2 w-full rounded-xl border border-[var(--border)] px-4 py-3 outline-none focus:border-[var(--primary)] focus:ring-4 focus:ring-[#5557d9]/10"
                 {...debtForm.register('status')}
               >
                 <option value="pending">Pending</option>
@@ -1616,10 +1606,10 @@ function Home() {
                 <option value="paid">Paid</option>
               </select>
             </label>
-            <label className="block text-sm font-medium text-slate-700">
+            <label className="block text-sm font-medium text-[var(--text-soft)]">
               Amount
               <input
-                className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-[#4648d4] focus:ring-4 focus:ring-[#4648d4]/10"
+                className="mt-2 w-full rounded-xl border border-[var(--border)] px-4 py-3 outline-none focus:border-[var(--primary)] focus:ring-4 focus:ring-[#5557d9]/10"
                 max="1000000000"
                 min="1"
                 placeholder="1200"
@@ -1635,10 +1625,10 @@ function Home() {
                 </p>
               )}
             </label>
-            <label className="block text-sm font-medium text-slate-700">
+            <label className="block text-sm font-medium text-[var(--text-soft)]">
               Currency
               <input
-                className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-[#4648d4] focus:ring-4 focus:ring-[#4648d4]/10"
+                className="mt-2 w-full rounded-xl border border-[var(--border)] px-4 py-3 outline-none focus:border-[var(--primary)] focus:ring-4 focus:ring-[#5557d9]/10"
                 maxLength={8}
                 placeholder="USD"
                 {...debtForm.register('currency', {
@@ -1655,18 +1645,18 @@ function Home() {
                 </p>
               )}
             </label>
-            <label className="block text-sm font-medium text-slate-700 sm:col-span-2">
+            <label className="block text-sm font-medium text-[var(--text-soft)] sm:col-span-2">
               Due date
               <input
-                className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-[#4648d4] focus:ring-4 focus:ring-[#4648d4]/10"
+                className="mt-2 w-full rounded-xl border border-[var(--border)] px-4 py-3 outline-none focus:border-[var(--primary)] focus:ring-4 focus:ring-[#5557d9]/10"
                 type="date"
                 {...debtForm.register('due_date')}
               />
             </label>
-            <label className="block text-sm font-medium text-slate-700 sm:col-span-2">
+            <label className="block text-sm font-medium text-[var(--text-soft)] sm:col-span-2">
               Description
               <textarea
-                className="mt-2 min-h-24 w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-[#4648d4] focus:ring-4 focus:ring-[#4648d4]/10"
+                className="mt-2 min-h-24 w-full rounded-xl border border-[var(--border)] px-4 py-3 outline-none focus:border-[var(--primary)] focus:ring-4 focus:ring-[#5557d9]/10"
                 maxLength={1000}
                 placeholder="Rent split, equipment, cash loan..."
                 {...debtForm.register('description')}

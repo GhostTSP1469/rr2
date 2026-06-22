@@ -1,4 +1,5 @@
 import { User } from '../../store/authStore'
+import { ThemeToggle } from '../theme/theme-toggle'
 import { Button } from '../ui/button'
 
 type AppHeaderProps = {
@@ -35,34 +36,39 @@ const getTitle = (page: string) => {
 
 export function AppHeader({ page, user, search, setSearch, getAllData }: AppHeaderProps) {
   return (
-    <header className="mb-8 flex flex-col gap-4 rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm lg:flex-row lg:items-center lg:justify-between">
-      <div>
-        <p className="text-sm font-medium text-slate-500">
-          Hello, {user?.name || 'friend'}
-        </p>
-        <h1 className="mt-1 text-3xl font-bold tracking-[-0.04em]">
+    <header className="mb-7 flex flex-col gap-5 border-b border-[var(--border)] pb-6 xl:flex-row xl:items-end xl:justify-between">
+      <div className="min-w-0">
+        <p className="eyebrow">Debt workspace</p>
+        <h1 className="mt-2 text-2xl font-bold tracking-[-0.035em] text-[var(--text)] sm:text-3xl">
           {getTitle(page)}
         </h1>
+        <p className="mt-1.5 text-sm text-[var(--muted)]">
+          Welcome back, {user?.name || 'friend'}.
+        </p>
       </div>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <label className="flex min-w-0 w-full items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-400">
+      <div className="flex min-w-0 flex-col gap-2.5 sm:flex-row sm:items-center">
+        <label className="toolbar-search w-full sm:w-[280px] lg:w-[340px]">
           <span className="material-symbols-outlined text-[20px]">search</span>
           <input
-            className="w-full min-w-0 bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
-            placeholder="Search contacts, debts..."
+            className="w-full min-w-0 !border-0 !bg-transparent !p-0 text-sm text-[var(--text)] !shadow-none !outline-none focus:!ring-0"
+            placeholder="Search anything..."
             value={search}
             onChange={(event) => setSearch(event.target.value)}
           />
         </label>
 
+        <ThemeToggle />
+
         <Button
+          aria-label="Refresh data"
           className="w-full sm:w-auto"
           variant="outline"
           onClick={() => {
             void getAllData()
           }}
         >
+          <span className="material-symbols-outlined text-[18px]">refresh</span>
           Refresh
         </Button>
       </div>

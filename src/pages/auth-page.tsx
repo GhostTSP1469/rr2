@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
 import { LogoutToast } from '../components/common/logout-toast'
+import { ThemeToggle } from '../components/theme/theme-toggle'
 import { Button } from '../components/ui/button'
 import { useBear } from '../store/authStore'
 
@@ -79,61 +80,67 @@ export function AuthPage({ mode }: AuthPageProps) {
   }
 
   return (
-    <main className="min-h-screen bg-[#f9f9ff] font-sans text-[#111c2d]">
-      <div className="grid min-h-screen lg:grid-cols-[1.1fr_0.9fr]">
-        <section className="relative hidden overflow-hidden bg-[#111c2d] px-12 py-10 text-white lg:flex lg:flex-col lg:justify-between">
-          <div className="absolute -left-24 top-24 h-80 w-80 rounded-full bg-[#4648d4]/40 blur-3xl" />
-          <div className="absolute bottom-10 right-0 h-96 w-96 rounded-full bg-[#6cf8bb]/20 blur-3xl" />
+    <main className="auth-shell">
+      <div className="grid min-h-screen lg:grid-cols-[minmax(0,1.05fr)_minmax(460px,0.95fr)]">
+        <section className="relative hidden overflow-hidden bg-[#101522] px-10 py-9 text-white lg:flex lg:flex-col lg:justify-between xl:px-14 xl:py-11">
+          <div className="absolute -left-28 top-20 h-96 w-96 rounded-full bg-[#5557d9]/35 blur-[100px]" />
+          <div className="absolute bottom-0 right-0 h-96 w-96 rounded-full bg-emerald-400/15 blur-[110px]" />
 
           <div className="relative">
             <div className="mb-20 flex items-center gap-3">
-              <div className="grid h-12 w-12 place-items-center rounded-2xl bg-white text-[#4648d4] shadow-lg">
+              <div className="grid h-11 w-11 place-items-center rounded-[14px] bg-white text-[#4b4dce] shadow-lg">
                 <span className="material-symbols-outlined">account_balance_wallet</span>
               </div>
               <div>
-                <h1 className="text-2xl font-bold">DebtFlow</h1>
-                <p className="text-sm text-white/60">Personal debt tracker</p>
+                  <h1 className="text-xl font-bold tracking-[-0.025em]">DebtFlow</h1>
+                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-white/65">Personal finance</p>
               </div>
             </div>
 
-            <p className="mb-6 max-w-xl text-5xl font-bold leading-tight tracking-[-0.04em]">
-              Simple debt tracking with contacts and payments.
-            </p>
-            <p className="max-w-lg text-lg leading-8 text-white/70">
-              Add contacts, create debts, record payments, and check the balance from one dashboard.
+              <p className="mb-5 max-w-xl text-4xl font-bold leading-[1.12] tracking-[-0.045em] xl:text-5xl">
+                Keep every debt clear, calm and accounted for.
+              </p>
+              <p className="max-w-lg text-base leading-7 text-white/70 xl:text-lg xl:leading-8">
+                Contacts, balances and payment history in one focused workspace.
             </p>
           </div>
 
-          <div className="relative rounded-[2rem] border border-white/10 bg-white/10 p-6 backdrop-blur">
-            <p className="text-sm text-white/60">DebtFlow keeps it clear:</p>
-            <div className="mt-5 grid gap-3">
-              <div className="rounded-2xl bg-white/10 p-4">Contacts</div>
-              <div className="rounded-2xl bg-white/10 p-4">Debts</div>
-              <div className="rounded-2xl bg-white/10 p-4">Payments</div>
-            </div>
-          </div>
-        </section>
-
-        <section className="flex items-center justify-center px-5 py-10">
-          <div className="w-full max-w-md rounded-[2rem] border border-slate-200 bg-white p-8 shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
-            <div className="mb-8 text-center">
-              <div className="mx-auto mb-5 grid h-14 w-14 place-items-center rounded-2xl bg-[#e1e0ff] text-[#4648d4]">
-                <span className="material-symbols-outlined">lock</span>
+            <div className="relative rounded-2xl border border-white/10 bg-white/[0.06] p-5 backdrop-blur">
+              <p className="text-xs font-bold uppercase tracking-[0.14em] text-white/65">Everything connected</p>
+              <div className="mt-4 grid grid-cols-3 gap-3">
+                {['Contacts', 'Debts', 'Payments'].map((item) => (
+                  <div className="rounded-xl border border-white/10 bg-white/[0.06] px-3 py-3 text-sm font-semibold" key={item}>
+                    {item}
+                  </div>
+                ))}
               </div>
-              <h2 className="text-3xl font-bold tracking-[-0.03em]">
+            </div>
+          </section>
+
+          <section className="relative flex items-center justify-center px-4 py-20 sm:px-8 lg:py-10">
+            <div className="absolute right-4 top-4 sm:right-8 sm:top-7">
+              <ThemeToggle />
+            </div>
+
+            <div className="surface-card w-full max-w-[440px] rounded-[1.5rem] p-6 sm:p-8">
+              <div className="mb-8 text-center">
+                <div className="mx-auto mb-5 grid h-12 w-12 place-items-center rounded-[14px] bg-[var(--primary-soft)] text-[var(--primary-text)]">
+                  <span className="material-symbols-outlined text-[21px]">lock</span>
+                </div>
+                <h2 className="text-3xl font-bold tracking-[-0.035em] text-[var(--text)]">
                 {isLogin ? 'Welcome back' : 'Create account'}
               </h2>
-              <p className="mt-2 text-sm text-slate-500">
+                <p className="mt-2 text-sm text-[var(--muted)]">
                 {isLogin ? 'Sign in to manage your debts' : 'Start tracking your personal ledger'}
               </p>
             </div>
 
             <form className="space-y-4" onSubmit={authForm.handleSubmit(submitAuth)}>
               {!isLogin && (
-                <label className="block text-sm font-medium text-slate-700">
+                  <label className="block text-sm font-semibold text-[var(--text-soft)]">
                   Full name
                   <input
-                    className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-[#4648d4] focus:ring-4 focus:ring-[#4648d4]/10"
+                    className="mt-2 w-full rounded-xl border border-[var(--border)] bg-[var(--input-bg)] px-4 py-3 text-[var(--text)] outline-none transition focus:border-[var(--primary)] focus:ring-4 focus:ring-[#5557d9]/10"
                     maxLength={120}
                     placeholder="Jane Doe"
                     {...authForm.register('name', {
@@ -152,10 +159,10 @@ export function AuthPage({ mode }: AuthPageProps) {
                 </label>
               )}
 
-              <label className="block text-sm font-medium text-slate-700">
+                <label className="block text-sm font-semibold text-[var(--text-soft)]">
                 Email
                 <input
-                  className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-[#4648d4] focus:ring-4 focus:ring-[#4648d4]/10"
+                  className="mt-2 w-full rounded-xl border border-[var(--border)] bg-[var(--input-bg)] px-4 py-3 text-[var(--text)] outline-none transition focus:border-[var(--primary)] focus:ring-4 focus:ring-[#5557d9]/10"
                   placeholder="you@example.com"
                   type="email"
                   {...authForm.register('email', {
@@ -173,11 +180,11 @@ export function AuthPage({ mode }: AuthPageProps) {
                 )}
               </label>
 
-              <label className="block text-sm font-medium text-slate-700">
+                <label className="block text-sm font-semibold text-[var(--text-soft)]">
                 Password
                 <div className="relative mt-2">
                   <input
-                    className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 pr-12 text-slate-900 outline-none transition focus:border-[#4648d4] focus:ring-4 focus:ring-[#4648d4]/10"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--input-bg)] px-4 py-3 pr-12 text-[var(--text)] outline-none transition focus:border-[var(--primary)] focus:ring-4 focus:ring-[#5557d9]/10"
                     maxLength={128}
                     placeholder="secret123"
                     type={showPassword ? 'text' : 'password'}
@@ -190,7 +197,7 @@ export function AuthPage({ mode }: AuthPageProps) {
                     })}
                   />
                   <button
-                    className="absolute right-3 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                      className="absolute right-3 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-lg text-[var(--muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--text)]"
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                   >
@@ -207,25 +214,25 @@ export function AuthPage({ mode }: AuthPageProps) {
               </label>
 
               {isLogin && (
-                <div className="flex items-center justify-between text-sm">
-                  <label className="flex items-center gap-2 text-slate-500">
-                    <input className="h-4 w-4 rounded border-slate-300" type="checkbox" />
+                  <div className="flex items-center justify-between gap-4 text-sm">
+                    <label className="flex items-center gap-2 text-[var(--muted)]">
+                    <input className="h-4 w-4 rounded border-[var(--border-strong)] accent-[var(--primary)]" type="checkbox" />
                     Remember me
                   </label>
-                  <button className="font-semibold text-[#4648d4]" type="button">
+                    <button className="font-bold text-[var(--primary-text)]" type="button">
                     Forgot password?
                   </button>
                 </div>
               )}
 
               {error && (
-                <p className="rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+                <p className="rounded-xl border border-[color-mix(in_srgb,var(--danger)_18%,transparent)] bg-[var(--danger-soft)] px-4 py-3 text-sm font-semibold text-[var(--danger)]">
                   {error}
                 </p>
               )}
 
               {message && (
-                <p className="rounded-xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
+                <p className="rounded-xl border border-[color-mix(in_srgb,var(--success)_18%,transparent)] bg-[var(--success-soft)] px-4 py-3 text-sm font-semibold text-[var(--success)]">
                   {message}
                 </p>
               )}
@@ -238,10 +245,10 @@ export function AuthPage({ mode }: AuthPageProps) {
                 {isLoading ? 'Loading...' : isLogin ? 'Sign in' : 'Create account'}
               </Button>
 
-              <p className="text-center text-sm text-slate-500">
+                <p className="text-center text-sm text-[var(--muted)]">
                 {isLogin ? 'New here?' : 'Already have an account?'}{' '}
                 <Link
-                  className="font-semibold text-[#4648d4]"
+                    className="font-bold text-[var(--primary-text)] hover:underline"
                   to={isLogin ? '/register' : '/login'}
                   onClick={resetBeforeMove}
                 >
@@ -249,7 +256,7 @@ export function AuthPage({ mode }: AuthPageProps) {
                 </Link>
               </p>
 
-              <div className="flex items-center justify-center gap-2 pt-2 text-xs font-medium text-slate-400">
+                <div className="flex items-center justify-center gap-2 pt-2 text-xs font-semibold text-[var(--faint)]">
                 <span className="material-symbols-outlined text-base">shield_lock</span>
                 Secure token based authentication
               </div>

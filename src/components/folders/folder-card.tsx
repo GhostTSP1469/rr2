@@ -14,14 +14,45 @@ type FolderCardProps = {
 
 const getAmountClass = (balance: number) => {
   if (balance > 0) {
-    return 'text-emerald-700'
+    return 'text-[var(--success)]'
   }
 
   if (balance < 0) {
-    return 'text-red-600'
+    return 'text-[var(--danger)]'
   }
 
-  return 'text-slate-400'
+  return 'text-[var(--muted)]'
+}
+
+const getSafeColor = (color: string) => {
+  const value = color.trim()
+  const shortHex = /^#([0-9a-f]{3})$/i.exec(value)
+  const longHex = /^#([0-9a-f]{6})$/i.exec(value)
+  let hex = ''
+
+  if (shortHex) {
+    const part = shortHex[1]
+    hex = `${part[0]}${part[0]}${part[1]}${part[1]}${part[2]}${part[2]}`
+  }
+
+  if (longHex) {
+    hex = longHex[1]
+  }
+
+  if (!hex) {
+    return 'var(--primary)'
+  }
+
+  const red = parseInt(hex.slice(0, 2), 16)
+  const green = parseInt(hex.slice(2, 4), 16)
+  const blue = parseInt(hex.slice(4, 6), 16)
+  const brightness = (red * 299 + green * 587 + blue * 114) / 1000
+
+  if (brightness > 205) {
+    return 'var(--muted)'
+  }
+
+  return value
 }
 
 export function FolderCard({
@@ -34,28 +65,33 @@ export function FolderCard({
   editFolder,
   deleteFolder,
 }: FolderCardProps) {
+  const safeColor = getSafeColor(cardColor)
+
   return (
-    <article className="overflow-hidden rounded-[1rem] border border-slate-100 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-      <div className="h-1.5" style={{ backgroundColor: cardColor }} />
+    <article className="surface-card group overflow-hidden rounded-2xl transition duration-200 hover:-translate-y-1 hover:shadow-[var(--shadow-md)]">
+      <div className="h-1" style={{ backgroundColor: safeColor }} />
       <div className="p-5">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
             <div
-              className="grid h-11 w-11 place-items-center rounded-xl text-white"
-              style={{ backgroundColor: cardColor }}
+              className="grid h-11 w-11 place-items-center rounded-xl"
+              style={{
+                backgroundColor: `color-mix(in srgb, ${safeColor} 16%, transparent)`,
+                color: safeColor,
+              }}
             >
               <span className="material-symbols-outlined text-[22px]">{icon}</span>
             </div>
             <div>
-              <h2 className="text-xl font-bold leading-tight">{folder.name}</h2>
-              <p className="mt-1 text-sm text-slate-500">
+              <h2 className="text-lg font-bold leading-tight text-[var(--text)]">{folder.name}</h2>
+              <p className="mt-1 text-xs font-semibold text-[var(--muted)]">
                 {contactsCount} Contacts
               </p>
             </div>
           </div>
           <div className="flex gap-1">
             <Button
-              className="rounded-full text-slate-400"
+              className="rounded-full text-[var(--muted)] opacity-70 group-hover:opacity-100"
               size="icon"
               variant="ghost"
               onClick={() => editFolder(folder.id, folder.name, folder.color)}
@@ -63,7 +99,7 @@ export function FolderCard({
               <span className="material-symbols-outlined text-[18px]">edit</span>
             </Button>
             <Button
-              className="rounded-full text-red-500"
+              className="rounded-full text-[var(--danger)] opacity-70 group-hover:opacity-100"
               size="icon"
               variant="ghost"
               onClick={() => {
@@ -75,9 +111,9 @@ export function FolderCard({
           </div>
         </div>
 
-        <div className="mt-7 border-t border-[#e7eeff] pt-4">
-          <p className="text-xs font-semibold text-slate-500">Total Outstanding</p>
-          <p className={`mt-2 text-3xl font-bold ${getAmountClass(balance)}`}>
+        <div className="mt-6 border-t border-[var(--border)] pt-4">
+          <p className="eyebrow !text-[10px]">Total outstanding</p>
+          <p className={`mt-2 text-2xl font-bold tracking-[-0.03em] ${getAmountClass(balance)}`}>
             {amountText}
           </p>
         </div>
